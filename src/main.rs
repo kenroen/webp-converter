@@ -1,3 +1,6 @@
+// Hide the console window on Windows when launched as a desktop app.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 use webp_converter::{app, cli};
 
 fn main() -> eframe::Result {
@@ -13,7 +16,8 @@ fn main() -> eframe::Result {
         .with_max_inner_size([app::WINDOW_W, app::WINDOW_H])
         .with_resizable(false)
         .with_maximize_button(false)
-        .with_decorations(false);
+        .with_decorations(false)
+        .with_active(true);
 
     let options = eframe::NativeOptions {
         viewport,

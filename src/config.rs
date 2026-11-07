@@ -69,8 +69,8 @@ impl TargetFormat {
 
     pub fn label(self) -> &'static str {
         match self {
-            TargetFormat::AutoPng => "AUTO (PNG / GIF)",
-            TargetFormat::AutoJpg => "AUTO (JPG / GIF)",
+            TargetFormat::AutoPng => "AUTO (PNG/GIF)",
+            TargetFormat::AutoJpg => "AUTO (JPG/GIF)",
             TargetFormat::Gif => "GIF",
             TargetFormat::Png => "PNG",
             TargetFormat::Jpg => "JPG",

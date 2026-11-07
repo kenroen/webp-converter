@@ -271,22 +271,16 @@ impl App {
         frame.show(ui, |ui| {
             ui.set_width(ui.available_width());
             ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    ui.label(
-                        RichText::new("■ DROP .WEBP FILES OR FOLDERS HERE")
-                            .font(FontId::new(15.0, FontFamily::Monospace))
-                            .color(if hovering_files {
-                                theme::ACCENT
-                            } else {
-                                theme::INK
-                            })
-                            .strong(),
-                    );
-                    caption(
-                        ui,
-                        "Static & Animated WebP -> GIF, PNG, JPG, BMP, ICO",
-                    );
-                });
+                ui.label(
+                    RichText::new("■ DROP .WEBP FILES OR FOLDERS")
+                        .font(FontId::new(15.0, FontFamily::Monospace))
+                        .color(if hovering_files {
+                            theme::ACCENT
+                        } else {
+                            theme::INK
+                        })
+                        .strong(),
+                );
 
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     ui.add_enabled_ui(!self.is_running(), |ui| {
@@ -316,6 +310,10 @@ impl App {
                     });
                 });
             });
+            caption(
+                ui,
+                "Static & Animated WebP -> GIF, PNG, JPG, BMP, ICO",
+            );
         });
     }
 
@@ -592,6 +590,23 @@ impl App {
                             );
                             name_resp.on_hover_text(full_display);
 
+                            if !tip.is_empty() {
+                                let detail_color = match &entry.status {
+                                    ItemStatus::Failed { .. } => theme::BAD,
+                                    ItemStatus::Skipped { .. } => theme::CYAN,
+                                    _ => theme::MUTED,
+                                };
+                                ui.add(
+                                    egui::Label::new(
+                                        RichText::new(&tip)
+                                            .font(FontId::new(12.0, FontFamily::Monospace))
+                                            .color(detail_color),
+                                    )
+                                    .truncate(),
+                                )
+                                .on_hover_text(&tip);
+                            }
+
                             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                 if !running
                                     && ui
@@ -702,7 +717,7 @@ fn small(ui: &mut Ui, text: &str, color: Color32) {
 fn hud_button(ui: &mut Ui, text: &str, color: Color32, selected: bool) -> Response {
     let font = FontId::new(13.0, FontFamily::Monospace);
     let galley = ui.painter().layout_no_wrap(text.to_owned(), font.clone(), color);
-    let size = galley.size() + vec2(16.0, 8.0);
+    let size = galley.size() + vec2(12.0, 8.0);
     let (rect, resp) = ui.allocate_exact_size(size, Sense::click());
     let hovered = resp.hovered();
     let (fill, ink, stroke) = if selected {
@@ -758,5 +773,8 @@ mod tests {
             assert_eq!(app.queue_len(), 1);
         }
         harness.run_steps(2);
+        if let Ok(path) = std::env::var("WEBP_SNAPSHOT") {
+            harness.render().expect("render").save(path).expect("save");
+        }
     }
 }
