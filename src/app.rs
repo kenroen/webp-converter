@@ -590,23 +590,6 @@ impl App {
                             );
                             name_resp.on_hover_text(full_display);
 
-                            if !tip.is_empty() {
-                                let detail_color = match &entry.status {
-                                    ItemStatus::Failed { .. } => theme::BAD,
-                                    ItemStatus::Skipped { .. } => theme::CYAN,
-                                    _ => theme::MUTED,
-                                };
-                                ui.add(
-                                    egui::Label::new(
-                                        RichText::new(&tip)
-                                            .font(FontId::new(12.0, FontFamily::Monospace))
-                                            .color(detail_color),
-                                    )
-                                    .truncate(),
-                                )
-                                .on_hover_text(&tip);
-                            }
-
                             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                 if !running
                                     && ui
@@ -619,6 +602,25 @@ impl App {
                                         .clicked()
                                 {
                                     remove_idx = Some(idx);
+                                }
+
+                                if !tip.is_empty() {
+                                    let detail_color = match &entry.status {
+                                        ItemStatus::Failed { .. } => theme::BAD,
+                                        ItemStatus::Skipped { .. } => theme::CYAN,
+                                        _ => theme::MUTED,
+                                    };
+                                    ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
+                                        ui.add(
+                                            egui::Label::new(
+                                                RichText::new(&tip)
+                                                    .font(FontId::new(12.0, FontFamily::Monospace))
+                                                    .color(detail_color),
+                                            )
+                                            .truncate(),
+                                        )
+                                        .on_hover_text(&tip);
+                                    });
                                 }
                             });
                         });
@@ -771,8 +773,71 @@ mod tests {
             let app = harness.state_mut();
             app.add_paths(&[webp_path.clone(), webp_path]);
             assert_eq!(app.queue_len(), 1);
+
+            if std::env::var("WEBP_SNAPSHOT").is_ok() {
+                app.queue = vec![
+                    QueueEntry {
+                        file: DiscoveredFile {
+                            source_path: PathBuf::from(r"D:\Downloads\giphy_explosion.webp"),
+                            base_dir: Some(PathBuf::from(r"D:\Downloads")),
+                        },
+                        status: ItemStatus::Done {
+                            outputs: vec![PathBuf::from(r"D:\Downloads\giphy_explosion.gif")],
+                            was_animated: true,
+                            duration_ms: 58,
+                        },
+                    },
+                    QueueEntry {
+                        file: DiscoveredFile {
+                            source_path: PathBuf::from(r"D:\Downloads\hero_banner.webp"),
+                            base_dir: Some(PathBuf::from(r"D:\Downloads")),
+                        },
+                        status: ItemStatus::Done {
+                            outputs: vec![PathBuf::from(r"D:\Downloads\hero_banner.png")],
+                            was_animated: false,
+                            duration_ms: 14,
+                        },
+                    },
+                    QueueEntry {
+                        file: DiscoveredFile {
+                            source_path: PathBuf::from(r"D:\Downloads\stickers\party_parrot.webp"),
+                            base_dir: Some(PathBuf::from(r"D:\Downloads")),
+                        },
+                        status: ItemStatus::Done {
+                            outputs: vec![PathBuf::from(
+                                r"D:\Downloads\stickers\party_parrot.gif",
+                            )],
+                            was_animated: true,
+                            duration_ms: 92,
+                        },
+                    },
+                    QueueEntry {
+                        file: DiscoveredFile {
+                            source_path: PathBuf::from(r"D:\Downloads\avatar_icon.webp"),
+                            base_dir: Some(PathBuf::from(r"D:\Downloads")),
+                        },
+                        status: ItemStatus::Skipped {
+                            reason: "Output file already exists".to_string(),
+                        },
+                    },
+                    QueueEntry {
+                        file: DiscoveredFile {
+                            source_path: PathBuf::from(r"D:\Downloads\ui_spritesheet.webp"),
+                            base_dir: Some(PathBuf::from(r"D:\Downloads")),
+                        },
+                        status: ItemStatus::Working,
+                    },
+                    QueueEntry {
+                        file: DiscoveredFile {
+                            source_path: PathBuf::from(r"D:\Downloads\background_4k.webp"),
+                            base_dir: Some(PathBuf::from(r"D:\Downloads")),
+                        },
+                        status: ItemStatus::Ready,
+                    },
+                ];
+            }
         }
-        harness.run_steps(2);
+        harness.run_steps(4);
         if let Ok(path) = std::env::var("WEBP_SNAPSHOT") {
             harness.render().expect("render").save(path).expect("save");
         }
